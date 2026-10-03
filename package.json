@@ -1,0 +1,22 @@
+{
+  "name": "mmc",
+  "version": "1.0.0",
+  "description": "Material master mass maintenance",
+  "private": true,
+  "scripts": {
+    "start": "cds-serve",
+    "watch": "cds watch",
+    "test": "jest",
+    "gen:uploads": "node scripts/generate-test-uploads.js"
+  },
+  "dependencies": {
+    "@cap-js/sqlite": "^3.1.1",
+    "@sap/cds": "^10.1.1",
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
+    "@cap-js/cds-test": "^1.0.2",
+    "@sap/cds-dk": "^10.1.0",
+    "jest": "^30.5.2"
+  }
+}

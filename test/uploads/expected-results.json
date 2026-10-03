@@ -1,0 +1,801 @@
+{
+  "_meta": {
+    "seed": 20261003,
+    "generator": "scripts/generate-test-uploads.js",
+    "assumptions": [
+      "totalRows counts Basic rows plus one stub row per orphan sourceKey (an org row with no Basic row).",
+      "Rows sharing a duplicated sourceKey each raise DUPLICATE_SOURCEKEY and share the org rows of that key.",
+      "Non-REQUIRED rules are skipped for blank values.",
+      "Built-in check field names: DUPLICATE_SOURCEKEY->sourceKey, DUPLICATE_EXISTING->materialNumber, NETWEIGHT_GT_GROSS->netWeight, EAN_CHECKDIGIT->ean, MISSING_VIEW->view, ORPHAN_ROW->sourceKey, STORAGELOC_PLANT->storageLocation, CURRENCY_COMPANY->currency.",
+      "EAN_CHECKDIGIT is only evaluated when the EAN already passes REGEX_EAN.",
+      "Structural messageContains strings are guesses and must be aligned with the real parser messages."
+    ]
+  },
+  "files": {
+    "happy-path.xlsx": {
+      "totalRows": 25,
+      "validRows": 25,
+      "warningRows": 0,
+      "errorRows": 0,
+      "sourceKeys": {
+        "TST-FERT-0001": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0002": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0003": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0004": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0005": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0006": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0007": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HALB-0001": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HALB-0002": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HALB-0003": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HALB-0004": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0001": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0002": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0003": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0004": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0005": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0001": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0002": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0003": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0004": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0005": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0006": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-VERP-0001": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-VERP-0002": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-VERP-0003": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        }
+      }
+    },
+    "validation-errors.xlsx": {
+      "totalRows": 20,
+      "validRows": 2,
+      "warningRows": 2,
+      "errorRows": 16,
+      "sourceKeys": {
+        "TST-FERT-0101": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "materialGroup",
+              "ruleCode": "REQUIRED_MATERIALGROUP",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-HALB-0101": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "plant",
+              "ruleCode": "LOOKUP_PLANT",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-ROH-0101": {
+          "status": "ERROR",
+          "rowCount": 2,
+          "messages": [
+            {
+              "fieldName": "sourceKey",
+              "ruleCode": "DUPLICATE_SOURCEKEY",
+              "severity": "ERROR"
+            },
+            {
+              "fieldName": "sourceKey",
+              "ruleCode": "DUPLICATE_SOURCEKEY",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-HAWA-0101": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "materialNumber",
+              "ruleCode": "DUPLICATE_EXISTING",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-FERT-0102": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "netWeight",
+              "ruleCode": "NETWEIGHT_GT_GROSS",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-ROH-0103": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "grossWeight",
+              "ruleCode": "RANGE_GROSSWEIGHT",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-HALB-0102": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "description",
+              "ruleCode": "LENGTH_DESCRIPTION",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-FERT-0103": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "ean",
+              "ruleCode": "EAN_CHECKDIGIT",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-HAWA-0102": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "view",
+              "ruleCode": "MISSING_VIEW",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-ORPHAN-0001": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "sourceKey",
+              "ruleCode": "ORPHAN_ROW",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-ROH-0105": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "storageLocation",
+              "ruleCode": "STORAGELOC_PLANT",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-FERT-0104": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "currency",
+              "ruleCode": "CURRENCY_COMPANY",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-FERT-0105": {
+          "status": "WARNING",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "priceControl",
+              "ruleCode": "PRICECTRL_MTYPE",
+              "severity": "WARNING"
+            }
+          ]
+        },
+        "TST-HALB-0103": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "baseUnit",
+              "ruleCode": "LOOKUP_BASEUNIT",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-FERT-0106": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "standardPrice",
+              "ruleCode": "RANGE_STANDARDPRICE",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-HAWA-0103": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "ean",
+              "ruleCode": "REGEX_EAN",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-ROH-0106": {
+          "status": "WARNING",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "priceControl",
+              "ruleCode": "PRICECTRL_MTYPE",
+              "severity": "WARNING"
+            }
+          ]
+        },
+        "TST-VERP-0101": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0107": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        }
+      }
+    },
+    "edge-cases.xlsx": {
+      "totalRows": 10,
+      "validRows": 10,
+      "warningRows": 0,
+      "errorRows": 0,
+      "sourceKeys": {
+        "TST-FERT-0201": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HALB-0201": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0201": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0201": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0202": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-VERP-0201": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0203": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0204": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HALB-0202": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0202": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        }
+      },
+      "expectedValues": {
+        "TST-FERT-0202": {
+          "materialType": "FERT",
+          "baseUnit": "EA",
+          "description": "Padded description"
+        },
+        "TST-VERP-0201": {
+          "materialNumber": "000000000000990206"
+        },
+        "TST-FERT-0203": {
+          "grossWeight": 12.5,
+          "netWeight": 10
+        },
+        "TST-FERT-0204": {
+          "materialType": "FERT",
+          "baseUnit": "EA",
+          "weightUnit": "KG",
+          "language": "DE"
+        }
+      }
+    },
+    "happy-path.csv": {
+      "totalRows": 25,
+      "validRows": 25,
+      "warningRows": 0,
+      "errorRows": 0,
+      "sourceKeys": {
+        "TST-FERT-0001": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0002": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0003": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0004": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0005": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0006": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0007": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HALB-0001": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HALB-0002": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HALB-0003": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HALB-0004": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0001": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0002": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0003": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0004": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-ROH-0005": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0001": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0002": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0003": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0004": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0005": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-HAWA-0006": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-VERP-0001": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-VERP-0002": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-VERP-0003": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        }
+      }
+    },
+    "validation-errors.csv": {
+      "totalRows": 19,
+      "validRows": 2,
+      "warningRows": 2,
+      "errorRows": 15,
+      "sourceKeys": {
+        "TST-FERT-0101": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "materialGroup",
+              "ruleCode": "REQUIRED_MATERIALGROUP",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-HALB-0101": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "plant",
+              "ruleCode": "LOOKUP_PLANT",
+              "severity": "ERROR"
+            },
+            {
+              "fieldName": "plant",
+              "ruleCode": "LOOKUP_PLANT",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-ROH-0101": {
+          "status": "ERROR",
+          "rowCount": 2,
+          "messages": [
+            {
+              "fieldName": "sourceKey",
+              "ruleCode": "DUPLICATE_SOURCEKEY",
+              "severity": "ERROR"
+            },
+            {
+              "fieldName": "sourceKey",
+              "ruleCode": "DUPLICATE_SOURCEKEY",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-HAWA-0101": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "materialNumber",
+              "ruleCode": "DUPLICATE_EXISTING",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-FERT-0102": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "netWeight",
+              "ruleCode": "NETWEIGHT_GT_GROSS",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-ROH-0103": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "grossWeight",
+              "ruleCode": "RANGE_GROSSWEIGHT",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-HALB-0102": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "description",
+              "ruleCode": "LENGTH_DESCRIPTION",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-FERT-0103": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "ean",
+              "ruleCode": "EAN_CHECKDIGIT",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-HAWA-0102": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "view",
+              "ruleCode": "MISSING_VIEW",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-ROH-0105": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "storageLocation",
+              "ruleCode": "STORAGELOC_PLANT",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-FERT-0104": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "currency",
+              "ruleCode": "CURRENCY_COMPANY",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-FERT-0105": {
+          "status": "WARNING",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "priceControl",
+              "ruleCode": "PRICECTRL_MTYPE",
+              "severity": "WARNING"
+            }
+          ]
+        },
+        "TST-HALB-0103": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "baseUnit",
+              "ruleCode": "LOOKUP_BASEUNIT",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-FERT-0106": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "standardPrice",
+              "ruleCode": "RANGE_STANDARDPRICE",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-HAWA-0103": {
+          "status": "ERROR",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "ean",
+              "ruleCode": "REGEX_EAN",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        "TST-ROH-0106": {
+          "status": "WARNING",
+          "rowCount": 1,
+          "messages": [
+            {
+              "fieldName": "priceControl",
+              "ruleCode": "PRICECTRL_MTYPE",
+              "severity": "WARNING"
+            }
+          ]
+        },
+        "TST-VERP-0101": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        },
+        "TST-FERT-0107": {
+          "status": "VALID",
+          "rowCount": 1,
+          "messages": []
+        }
+      },
+      "note": "The flat layout has one shared \"plant\" column, so a bad plant is reported once per view that uses it (Plant, Storage, Purchasing)."
+    },
+    "missing-column.xlsx": {
+      "rejected": true,
+      "messageContains": "materialType"
+    },
+    "wrong-header.xlsx": {
+      "rejected": true,
+      "messageContains": "Material Typ"
+    },
+    "empty.xlsx": {
+      "rejected": true,
+      "messageContains": "no data rows"
+    },
+    "missing-sheet.xlsx": {
+      "rejected": true,
+      "messageContains": "Basic"
+    },
+    "not-a-spreadsheet.xlsx": {
+      "rejected": true,
+      "messageContains": "not a valid"
+    },
+    "volume-5000.xlsx": {
+      "totalRows": 5000,
+      "validRows": 4750,
+      "warningRows": 0,
+      "errorRows": 250
+    }
+  }
+}

@@ -1,0 +1,11 @@
+materialNumber,materialType,description,lastRefreshedAt
+EXS-FERT-0001,FERT,Existing finished product 1,2026-10-01T00:00:00Z
+EXS-FERT-0002,FERT,Existing finished product 2,2026-10-01T00:00:00Z
+EXS-FERT-0003,FERT,Existing finished product 3,2026-10-01T00:00:00Z
+EXS-HALB-0001,HALB,Existing semifinished product 1,2026-10-01T00:00:00Z
+EXS-HALB-0002,HALB,Existing semifinished product 2,2026-10-01T00:00:00Z
+EXS-ROH-0001,ROH,Existing raw material 1,2026-10-01T00:00:00Z
+EXS-ROH-0002,ROH,Existing raw material 2,2026-10-01T00:00:00Z
+EXS-HAWA-0001,HAWA,Existing trading good 1,2026-10-01T00:00:00Z
+EXS-HAWA-0002,HAWA,Existing trading good 2,2026-10-01T00:00:00Z
+EXS-VERP-0001,VERP,Existing packaging 1,2026-10-01T00:00:00Z
