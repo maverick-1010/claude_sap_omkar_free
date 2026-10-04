@@ -1,0 +1,239 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>MASS MATERIAL CREATION</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(180deg,#f8fafc,#e2e8f0);color:#0f172a;min-width:2600px;padding-right:40px}
+.header{padding:48px 60px 24px;position:relative}
+.header h1{margin:0;font-size:48px;font-weight:800;color:#1e3a8a;letter-spacing:1px}
+.header h2{margin:8px 0 0;font-size:28px;font-weight:500;color:#334155}
+.divider{height:5px;margin:22px 60px 0;border-radius:3px;background:linear-gradient(90deg,#1e3a8a,#3b82f6,#f59e0b)}
+.brand{position:absolute;top:40px;right:40px;background:#fff;border:3px solid #1e3a8a;border-radius:12px;padding:14px 26px;box-shadow:0 4px 12px rgba(0,0,0,.1);text-align:right}
+.brand .a{font-size:32px;font-weight:800;color:#1e3a8a;text-shadow:1px 1px 2px rgba(30,58,138,.25)}
+.brand .b{font-size:22px;color:#3b82f6;font-weight:600}
+.ribbon{position:absolute;top:-14px;right:20px;background:#f59e0b;color:#fff;font-size:14px;font-weight:700;padding:3px 14px;border-radius:8px;letter-spacing:2px}
+.row{display:flex;gap:30px;padding:30px 60px 0;align-items:flex-start}
+.box{background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);padding:22px 28px;font-size:20px}
+.box h3{margin:0 0 12px;font-size:24px;color:#1e3a8a}
+.stat{display:flex;justify-content:space-between;gap:40px;padding:4px 0}
+.stat b{color:#1e3a8a}
+.leg{display:flex;align-items:center;gap:12px;margin:6px 0;font-size:19px;max-width:620px}
+.sw{flex:none;width:30px;height:22px;border-radius:8px;border:2px solid}
+.diagram{width:max-content;min-width:calc(100% - 160px);margin:30px 100px 60px 60px;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);padding:30px 80px 30px 30px;text-align:center;overflow:visible}
+.mermaid svg{max-width:none!important}
+.footer{margin-top:40px;height:120px;background:linear-gradient(90deg,#1e3a8a,#3b82f6);color:#fff;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.footer .m{font-size:36px;font-weight:800;letter-spacing:2px}
+.footer .s{font-size:22px;opacity:.95;margin-top:6px}
+</style></head><body>
+<div class="header"><h1>MASS MATERIAL CREATION</h1><h2>SAP CAP Database Design · S/4HANA Material Master</h2>
+</div>
+<div class="divider"></div>
+<div class="row">
+<div class="box"><h3>Statistics</h3>
+<div class="stat"><span>Total Entities</span><b>13</b></div>
+<div class="stat"><span>Code Lists (enum types)</span><b>5</b></div>
+<div class="stat"><span>Reusable types (common.cds)</span><b>11</b></div>
+<div class="stat"><span>Total Fields</span><b>123</b></div>
+<div class="stat"><span>Total Relationships</span><b>8</b></div>
+<div class="stat"><span>Generated</span><b>2026-10-04</b></div></div>
+<div class="box"><h3>Entity categories</h3>
+<div class="leg"><span class="sw" style="background:#d1fae5;border-color:#047857"></span>Main (UploadJobs, MaterialRequests)</div>
+<div class="leg"><span class="sw" style="background:#fef9c3;border-color:#a16207"></span>Org-level views (Plant, Storage, Sales, Valuation, Purchasing)</div>
+<div class="leg"><span class="sw" style="background:#e0f2fe;border-color:#0369a1"></span>Supporting (JobFiles)</div>
+<div class="leg"><span class="sw" style="background:#ede9fe;border-color:#6d28d9"></span>Validation results (ValidationMessages)</div>
+<div class="leg"><span class="sw" style="background:#dbeafe;border-color:#1d4ed8"></span>Configuration &amp; caches</div></div>
+<div class="box"><h3>Symbols</h3>
+<div class="leg"><b>PK</b> primary key (cuid UUID or composite key)</div>
+<div class="leg"><b>FK</b> foreign key from an association</div>
+<div class="leg"><b>||--o{</b> composition: parent owns children (1 : N)</div>
+<div class="leg"><b>||--o|</b> composition: 1 : 0..1</div>
+<div class="leg">Quoted text = English <b>@title</b> label</div>
+<div class="leg">Mandatory fields: none declared in the model</div></div>
+<div class="box"><h3>common.cds types</h3>
+<div class="leg"><b>Enums:</b> JobStatus, RowStatus, Severity, ViewType, RuleType</div>
+<div class="leg"><b>Domain:</b> MaterialNumber, Plant, UoM, Currency, Quantity, Amount</div></div>
+</div>
+<div class="diagram"><pre class="mermaid">
+erDiagram
+    UploadJobs ||--o| JobFiles : "contains"
+    UploadJobs ||--o{ MaterialRequests : "contains"
+    MaterialRequests ||--o{ MaterialPlantData : "contains"
+    MaterialRequests ||--o{ MaterialStorageData : "contains"
+    MaterialRequests ||--o{ MaterialSalesData : "contains"
+    MaterialRequests ||--o{ MaterialValuationData : "contains"
+    MaterialRequests ||--o{ MaterialPurchasingData : "contains"
+    MaterialRequests ||--o{ ValidationMessages : "contains"
+    UploadJobs {
+        UUID ID PK
+        Timestamp createdAt
+        User(255) createdBy
+        Timestamp modifiedAt
+        User(255) modifiedBy
+        Integer jobNo "Job Number"
+        String(120) description "Description"
+        String(255) fileName "File Name"
+        JobStatus status "Job Status"
+        UUID correlationId "Correlation ID"
+        Integer totalRows "Total Rows"
+        Integer validRows "Valid Rows"
+        Integer warningRows "Rows with Warnings"
+        Integer errorRows "Rows with Errors"
+        Integer successRows "Posted Rows"
+        Integer failedRows "Failed Rows"
+        Integer progressPct "Progress (%)"
+        Boolean requiresApproval "Approval Required"
+        String(255) submittedBy "Submitted By"
+        Timestamp submittedAt "Submitted At"
+        String(255) approvedBy "Approved By"
+        Timestamp approvedAt "Approved At"
+        String(500) rejectionReason "Rejection Reason"
+        Timestamp postingStartedAt "Posting Started At"
+        Timestamp postingEndedAt "Posting Ended At"
+        Integer statusCriticality_virtual "Status Criticality"
+    }
+    JobFiles {
+        UUID ID PK
+        UUID job_ID FK "Upload Job"
+        LargeBinary content "File Content"
+        String(100) mediaType "Media Type"
+        String(255) fileName "File Name"
+        Integer fileSize "File Size (Bytes)"
+    }
+    MaterialRequests {
+        UUID ID PK
+        Timestamp createdAt
+        User(255) createdBy
+        Timestamp modifiedAt
+        User(255) modifiedBy
+        UUID job_ID FK "Upload Job"
+        Integer rowNo "Row Number"
+        String(60) sourceKey "Source Key"
+        RowStatus status "Row Status"
+        UUID externalRequestId "External Request ID"
+        MaterialNumber materialNumber "Material Number"
+        String(4) materialType "Material Type"
+        String(1) industrySector "Industry Sector"
+        String(9) materialGroup "Material Group"
+        String(40) description "Material Description"
+        String(2) language "Language"
+        UoM baseUnit "Base Unit of Measure"
+        Quantity grossWeight "Gross Weight"
+        Quantity netWeight "Net Weight"
+        UoM weightUnit "Weight Unit"
+        String(18) ean "EAN/UPC"
+        MaterialNumber createdMaterial "Created Material"
+        String(60) s4ErrorCode "S/4 Error Code"
+        String(1000) s4ErrorText "S/4 Error Text"
+        Integer attempts "Posting Attempts"
+        Timestamp lastAttemptAt "Last Attempt At"
+        Integer statusCriticality_virtual "Status Criticality"
+    }
+    MaterialPlantData {
+        UUID ID PK
+        UUID request_ID FK "Material Request"
+        Plant plant "Plant"
+        String(3) purchasingGroup "Purchasing Group"
+        String(2) mrpType "MRP Type"
+        String(3) mrpController "MRP Controller"
+        String(2) lotSizeKey "Lot Size"
+        Quantity reorderPoint "Reorder Point"
+        String(1) procurementType "Procurement Type"
+        String(2) availabilityCheck "Availability Check"
+    }
+    MaterialStorageData {
+        UUID ID PK
+        UUID request_ID FK "Material Request"
+        Plant plant "Plant"
+        String(4) storageLocation "Storage Location"
+    }
+    MaterialSalesData {
+        UUID ID PK
+        UUID request_ID FK "Material Request"
+        String(4) salesOrg "Sales Organization"
+        String(2) distributionChannel "Distribution Channel"
+        String(1) taxClassification "Tax Classification"
+        String(4) itemCategoryGroup "Item Category Group"
+        Plant deliveringPlant "Delivering Plant"
+    }
+    MaterialValuationData {
+        UUID ID PK
+        UUID request_ID FK "Material Request"
+        String(4) valuationArea "Valuation Area"
+        String(4) valuationClass "Valuation Class"
+        String(1) priceControl "Price Control"
+        Amount standardPrice "Standard Price"
+        Amount movingAvgPrice "Moving Average Price"
+        Currency currency "Currency"
+    }
+    MaterialPurchasingData {
+        UUID ID PK
+        UUID request_ID FK "Material Request"
+        Plant plant "Plant"
+        String(3) purchasingGroup "Purchasing Group"
+        UoM orderUnit "Order Unit"
+        Integer grProcessingDays "GR Processing Time (Days)"
+    }
+    ValidationMessages {
+        UUID ID PK
+        UUID request_ID FK "Material Request"
+        Severity severity "Severity"
+        ViewType viewType "View"
+        String(60) fieldName "Field Name"
+        String(30) ruleCode "Rule Code"
+        String(500) messageText "Message Text"
+        Timestamp createdAt "Created At"
+    }
+    MaterialTypeViewConfig {
+        String(4) materialType PK "Material Type"
+        ViewType view PK "View"
+        Boolean mandatory "Mandatory"
+    }
+    ValidationRules {
+        UUID ID PK
+        String(30) ruleCode "Rule Code"
+        String(40) entityName "Entity Name"
+        String(60) fieldName "Field Name"
+        RuleType ruleType "Rule Type"
+        String(500) parameter "Rule Parameter"
+        Severity severity "Severity"
+        String(500) messageText "Message Text"
+        String(4) materialType "Material Type"
+        Boolean active "Active"
+    }
+    ValueHelpCache {
+        String(30) category PK "Category"
+        String(40) code PK "Code"
+        String(120) text "Text"
+        Timestamp lastRefreshedAt "Last Refreshed At"
+    }
+    ExistingMaterialCache {
+        MaterialNumber materialNumber PK "Material Number"
+        String(4) materialType "Material Type"
+        String(40) description "Material Description"
+        Timestamp lastRefreshedAt "Last Refreshed At"
+    }
+    UploadJobs:::main
+    MaterialRequests:::main
+    JobFiles:::support
+    ValidationMessages:::result
+    MaterialPlantData:::view
+    MaterialStorageData:::view
+    MaterialSalesData:::view
+    MaterialValuationData:::view
+    MaterialPurchasingData:::view
+    MaterialTypeViewConfig:::config
+    ValidationRules:::config
+    ValueHelpCache:::config
+    ExistingMaterialCache:::config
+    classDef main fill:#d1fae5,stroke:#047857,stroke-width:2px,color:#064e3b
+    classDef view fill:#fef9c3,stroke:#a16207,stroke-width:2px,color:#713f12
+    classDef support fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#0c4a6e
+    classDef result fill:#ede9fe,stroke:#6d28d9,stroke-width:2px,color:#4c1d95
+    classDef config fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#1e3a8a
+
+</pre></div>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({startOnLoad:false,theme:'base',securityLevel:'loose',er:{useMaxWidth:false,fontSize:18,entityPadding:18,minEntityWidth:230},themeVariables:{fontSize:'18px',fontFamily:'Segoe UI, Arial, sans-serif',primaryColor:'#ffffff',lineColor:'#475569'}});
+try{await mermaid.run({querySelector:'.mermaid'});document.body.dataset.ready='1';}
+catch(e){document.body.dataset.ready='error';document.body.dataset.err=String(e);}
+</script></body></html>
