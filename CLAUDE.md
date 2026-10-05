@@ -4,18 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Nature of the repo
 
-ABAP (7.40 SP08+, new syntax, local classes) report for SAP material master mass maintenance (Create / Update / Extend) via Excel/CSV templates. There is no build, lint or test tooling: the code was written offline and has **never been compiled**. Verification is a syntax check (SE38 / ADT) on an SAP system. Not a git repo. See `README.md` for text symbols, the dynamic-mapping table and the list of design assumptions to confirm — keep it in sync when behavior changes.
+SAP CAP (Node.js, `@sap/cds` 10, SQLite via `@cap-js/sqlite`) project "Mass Material Creation" (`mmc` namespace): upload an Excel/CSV of material master rows, validate them against configurable rules, and later post them to SAP. It replaces an earlier ABAP report (`zmm_material_maintenance*.abap`) that was never compiled; those files are deleted in the working tree (still in git history, last version at commit `e504801` and earlier). `README.md` still describes the old ABAP report and is outdated; `abap_claude/` is an empty folder.
 
-## Two parallel versions
+## Commands
 
-- **Include-based**: `zmm_material_maintenance.abap` (main report) includes `_top` (global types), `_s01` (selection screen), `_c01` (`lcx_error`, `lcl_file_io`, `lcl_template`, `lcl_config`, `lcl_bapi`), `_c02` (`lcl_log`, `lcl_validator`, `lcl_output`, `lcl_app`), `_e01` (events).
-- **Single-file**: `zmm_material_maintenance_single.abap` is a consolidation of the above into one report (`ZMM_MATERIAL_MAINTENANCE_SINGLE`). The two copies are not linked, so a logic change must be applied to both (the single file says the include project "remains untouched").
+- `npm start` (`cds-serve`) / `npm run watch` (`cds watch`) – run the service; OData V4 at `/odata/v4/material`.
+- `npm test` (jest) – single file: `npx jest test/validation-errors.test.js`. That test skips itself until the service implements the `validate` action (`srv/` currently only has the `.cds` definition, no `.js` handler).
+- `npm run gen:uploads` – regenerates `test/uploads/*` (xlsx/csv), `expected-results.json` and `test-cases.md`. Deterministic (seeded); it aborts if its reference validator disagrees with the declared expectations. Add cases to `CASES` / `STRUCTURAL` / `FAULTS` in `scripts/generate-test-uploads.js` rather than editing the generated files.
 
-## Architecture (big picture)
+## Architecture
 
-Pipeline driven by `lcl_app`: file check → read template (`lcl_template`, local or AL11, .xlsx/.csv) → load config (`lcl_config`) → per template row validate (`lcl_validator`) → map to BAPI → `lcl_bapi` → commit/rollback per row → `lcl_log` / `lcl_output` (ALV, CSV on AL11, mail).
+- `db/common.cds` – single source of truth for enums (`JobStatus`, `RowStatus`, `Severity`, `ViewType`, `RuleType`) and scalar domain types; every type carries `@title: '{i18n>...}'`.
+- `db/schema.cds` – data model: `UploadJobs` (header, counters) → `JobFiles` (media) and `MaterialRequests` (one per uploaded row) → org-level views (`MaterialPlantData`, `…StorageData`, `…SalesData`, `…ValuationData`, `…PurchasingData`) and `ValidationMessages`. Configuration/reference entities: `MaterialTypeViewConfig` (which views are mandatory per material type), `ValidationRules` (data-driven REQUIRED/REGEX/RANGE/LOOKUP/LENGTH rules), `ValueHelpCache`, `ExistingMaterialCache`.
+- `srv/material-service.cds` – `MaterialService` projecting those entities; `ValidationMessages` and the config/cache entities are `@readonly`. Bound actions such as `UploadJobs/validate` are expected by the test but not yet defined.
+- Seed data: `db/data/` (config + rules, loaded by cds), `test/data/` (caches, test only). Rules are CSV rows, so validation behavior is changed by editing data, not code.
+- i18n: `db/i18n/` with `en` (default), `es`, `hi`. Keep all languages in sync; use the `/cap-add-language` and `/cap-lang-check` project commands.
+- `docs/` – generated database design diagram (`/cap-export-design`).
 
-- Behavior is **configuration-driven** by Z tables: `ZTMM_MATMAS_MAST` (active `VARIANT_VIEW` per operation C/U/E + mtart + indsec + busprf; also feeds the cascading dropdowns), per-view field-config tables sharing the `ztmm_basic_data` structure (`ty_cfg` in `_top`), and `ZTMM_COND_MAND` (conditional mandatory).
-- `lcl_bapi` is a **generic dynamic wrapper** for `BAPI_MATERIAL_SAVEREPLICA`: the BAPI interface is read at runtime from `FUPARAREF`, and config rows (`BAPI_STRUCT_NAME` / `BAPI_FIELD_NAME`) map template fields to real BAPI parameters. New fields need config only, not code. It auto-fills the `<STRUCT>X` flag structures, treats trailing `_<n>` of a template field as the table-line key, and does type/conversion-exit conversion. Classification goes through `BAPI_OBJCL_CREATE/CHANGE` after the material commit (not simulated in test run).
-- Template rows are modeled as hashed `name/value` lists (`ty_row`/`ty_fv`); results as `ty_log` lines (one per message).
-- One BAPI call and one commit (or rollback when `P_TEST`, default on) per template row.
+## Conventions
+
+- Keys are `cuid`; auditing via `managed`. New enums/types go in `common.cds`, not inline in `schema.cds`.
+- `db.sqlite` and `node_modules/` are git-ignored. `/commit` project command: Conventional Commits, shows the message and waits for confirmation before committing/pushing.
