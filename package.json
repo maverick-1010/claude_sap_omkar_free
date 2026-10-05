@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Material master mass maintenance",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "cds-serve",
     "watch": "cds watch",
@@ -10,13 +13,80 @@
     "gen:uploads": "node scripts/generate-test-uploads.js"
   },
   "dependencies": {
+    "@cap-js/audit-logging": "^1",
+    "@cap-js/hana": "^3",
     "@cap-js/sqlite": "^3.1.1",
+    "@sap-cloud-sdk/connectivity": "^4",
+    "@sap-cloud-sdk/http-client": "^4",
     "@sap/cds": "^10.1.1",
+    "@sap/xssec": "^4",
     "exceljs": "^4.4.0"
   },
   "devDependencies": {
     "@cap-js/cds-test": "^1.0.2",
     "@sap/cds-dk": "^10.1.0",
+    "@sap/eslint-plugin-cds": "^4.2.5",
+    "eslint": "^10.12.0",
     "jest": "^30.5.2"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/gen/"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/gen/"
+    ]
+  },
+  "cds": {
+    "requires": {
+      "[development]": {
+        "auth": {
+          "kind": "mocked",
+          "users": {
+            "requester1": {
+              "roles": [
+                "MaterialRequester"
+              ]
+            },
+            "requester2": {
+              "roles": [
+                "MaterialRequester"
+              ]
+            },
+            "approver1": {
+              "roles": [
+                "MaterialApprover"
+              ]
+            },
+            "admin1": {
+              "roles": [
+                "MaterialAdmin"
+              ]
+            }
+          }
+        }
+      },
+      "[production]": {
+        "auth": "xsuaa"
+      },
+      "destinations": true
+    },
+    "mmc": {
+      "requiresApproval": false,
+      "posting": {
+        "chunkSize": 50,
+        "concurrency": 3,
+        "maxRetries": 3,
+        "backoffMs": 500
+      },
+      "s4": {
+        "destination": "S4_MATERIAL"
+      },
+      "nightlyRefresh": {
+        "enabled": true,
+        "hour": 2
+      }
+    }
   }
 }

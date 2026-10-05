@@ -1,0 +1,81 @@
+_schema-version: 3.3.0
+ID: mmc
+version: 1.0.0
+description: "Material master mass maintenance"
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+modules:
+  - name: mmc-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: mmc-auth
+      - name: mmc-db
+      - name: mmc-destination
+      - name: mmc-auditlog
+
+  - name: mmc-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: mmc-db
+
+resources:
+  - name: mmc-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: mmc-${org}-${space}
+        tenant-mode: dedicated
+        oauth2-configuration:
+          credential-types:
+            - "binding-secret"
+            - "x509"
+        role-collections:
+          - name: 'MaterialRequester (mmc ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.MaterialRequester'
+          - name: 'MaterialApprover (mmc ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.MaterialApprover'
+          - name: 'MaterialAdmin (mmc ${org}-${space})'
+            description: 'generated'
+            role-template-references:
+              - '$XSAPPNAME.MaterialAdmin'
+  - name: mmc-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+  - name: mmc-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+  - name: mmc-auditlog
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: auditlog
+      service-plan: premium

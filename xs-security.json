@@ -1,0 +1,43 @@
+{
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.MaterialRequester",
+      "description": "MaterialRequester"
+    },
+    {
+      "name": "$XSAPPNAME.MaterialApprover",
+      "description": "MaterialApprover"
+    },
+    {
+      "name": "$XSAPPNAME.MaterialAdmin",
+      "description": "MaterialAdmin"
+    }
+  ],
+  "attributes": [],
+  "role-templates": [
+    {
+      "name": "MaterialRequester",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.MaterialRequester"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "MaterialApprover",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.MaterialApprover"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "MaterialAdmin",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.MaterialAdmin"
+      ],
+      "attribute-references": []
+    }
+  ]
+}
