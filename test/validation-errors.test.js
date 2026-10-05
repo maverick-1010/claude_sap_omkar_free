@@ -5,7 +5,7 @@
  *
  * The CAP service does not exist in this repo yet, so the test skips itself until a srv/ folder is
  * present. Adjust the assumptions below to the real service:
- *   - service path:  /odata/v4/material
+ *   - service path:  /odata/v4/mass-material
  *   - entities:      UploadJobs, JobFiles (media entity), ValidationMessages (with request -> MaterialRequests)
  *   - bound action:  UploadJobs/validate, which parses JobFiles.content and fills MaterialRequests
  *                    (incl. sourceKey) and ValidationMessages synchronously
@@ -14,17 +14,20 @@
  */
 const fs = require('fs');
 const path = require('path');
+// mocked users; project-wide auth config comes with step 10
+process.env.CDS_CONFIG = JSON.stringify({ requires: { auth: { kind: 'mocked', users: { req1: { roles: ['MaterialRequester'] } } } } });
 const cds = require('@cap-js/cds-test');
 
 const ROOT = path.join(__dirname, '..');
 const FILE = 'validation-errors.xlsx';
-const SVC = '/odata/v4/material';
+const SVC = '/odata/v4/mass-material';
 const expected = require('./uploads/expected-results.json').files[FILE];
 
 const hasService = fs.existsSync(path.join(ROOT, 'srv'));
 (hasService ? describe : describe.skip)(`validate ${FILE}`, () => {
   const { GET, POST, PUT, axios } = cds.test(ROOT);
-  axios.defaults.auth = { username: 'alice', password: '' }; // mocked user
+  axios.defaults.auth = { username: 'req1', password: '' }; // mocked requester
+  const act = { headers: { 'If-Match': '*' } };      // CAP requires If-Match on bound actions of ETag entities
 
   let jobId;
   beforeAll(async () => {
@@ -32,7 +35,8 @@ const hasService = fs.existsSync(path.join(ROOT, 'srv'));
     const { data: file } = await POST(`${SVC}/JobFiles`, { job_ID: jobId, fileName: FILE, mediaType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     await PUT(`${SVC}/JobFiles(${file.ID})/content`, fs.readFileSync(path.join(__dirname, 'uploads', FILE)),
       { headers: { 'Content-Type': 'application/octet-stream' } });
-    await POST(`${SVC}/UploadJobs(${jobId})/MaterialService.validate`, {});
+    await POST(`${SVC}/UploadJobs(${jobId})/MassMaterialService.parse`, {}, act);
+    await POST(`${SVC}/UploadJobs(${jobId})/MassMaterialService.validate`, {}, act);
   });
 
   test('job counters match', async () => {

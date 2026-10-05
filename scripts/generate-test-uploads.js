@@ -63,7 +63,7 @@ function parseCsv(text) {
   const [head, ...body] = rows;
   return body.map(r => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ''])));
 }
-const readSeed = rel => parseCsv(fs.readFileSync(path.join(ROOT, rel), 'utf8').replace(/^﻿/, ''));
+const readSeed = rel => parseCsv(fs.readFileSync(path.join(ROOT, rel), 'utf8').replace(/^\uFEFF/, ''));
 
 // ---------------------------------------------------------------- seed data
 const seed = (() => {
@@ -395,7 +395,7 @@ function expandFlat(r) {
 function writeCsv(file, rows) {
   const q = v => { const s = v === undefined || v === null ? '' : String(v); return /[;"\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const lines = [FLAT_COLS.join(';'), ...rows.map(r => FLAT_COLS.map(c => q(r[c])).join(';'))];
-  fs.writeFileSync(path.join(OUT, file), '﻿' + lines.join('\r\n') + '\r\n', 'utf8');
+  fs.writeFileSync(path.join(OUT, file), '\uFEFF' + lines.join('\r\n') + '\r\n', 'utf8');
 }
 
 // ---------------------------------------------------------------- build
