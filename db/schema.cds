@@ -30,6 +30,7 @@ entity UploadJobs : cuid, managed {
   @title: '{i18n>RejectionReason}' rejectionReason  : String(500);
   @title: '{i18n>PostingStartedAt}' postingStartedAt : Timestamp;
   @title: '{i18n>PostingEndedAt}' postingEndedAt   : Timestamp;
+  @title: '{i18n>FailureReason}' failureReason     : String(500);                // why the job as a whole failed (e.g. destination missing)
 
   // UI helpers (computed in an after-READ handler)
   @title: '{i18n>StatusCriticality}' virtual statusCriticality : Integer;
@@ -58,6 +59,7 @@ entity MaterialRequests : cuid, managed {
   @title: '{i18n>SourceKey}' sourceKey         : String(60);                // links the template sheets; used to match test results
   @title: '{i18n>RowStatus}' status            : RowStatus default 'NEW';
   @title: '{i18n>ExternalRequestId}' externalRequestId : UUID;                      // idempotency key for S/4 posting
+  @title: '{i18n>IsOrphan}' isOrphan           : Boolean default false;     // org rows whose sourceKey has no Basic row (set by parse)
 
   // Basic data
   @title: '{i18n>MaterialNumber}' materialNumber    : MaterialNumber;            // optional if internal numbering
@@ -195,3 +197,49 @@ entity ExistingMaterialCache {
   @title: '{i18n>MaterialDescription}' description        : String(40);
   @title: '{i18n>LastRefreshedAt}' lastRefreshedAt    : Timestamp;
 }
+
+// ---------- Service-contract annotations (spec §3.1, §3.3, §4.3, §4.5, §6) ----------
+
+annotate UploadJobs with @(assert.unique.jobNo: [jobNo]);
+annotate UploadJobs with { modifiedAt @odata.etag };
+annotate UploadJobs with { fileName @readonly };
+annotate UploadJobs with { status @readonly };
+annotate UploadJobs with { correlationId @readonly };
+annotate UploadJobs with { requiresApproval @readonly };
+annotate UploadJobs with { totalRows @readonly };
+annotate UploadJobs with { validRows @readonly };
+annotate UploadJobs with { warningRows @readonly };
+annotate UploadJobs with { errorRows @readonly };
+annotate UploadJobs with { successRows @readonly };
+annotate UploadJobs with { failedRows @readonly };
+annotate UploadJobs with { progressPct @readonly };
+annotate UploadJobs with { submittedBy @readonly };
+annotate UploadJobs with { submittedAt @readonly };
+annotate UploadJobs with { approvedBy @readonly };
+annotate UploadJobs with { approvedAt @readonly };
+annotate UploadJobs with { postingStartedAt @readonly };
+annotate UploadJobs with { postingEndedAt @readonly };
+annotate UploadJobs with { rejectionReason @Core.Computed };   // written by the reject action only
+annotate UploadJobs with { failureReason @readonly };
+
+annotate MaterialRequests with @(assert.unique.externalRequestId: [externalRequestId]);
+annotate MaterialRequests with { modifiedAt @odata.etag };
+annotate MaterialRequests with { job @mandatory };
+annotate MaterialRequests with { rowNo @readonly };
+annotate MaterialRequests with { status @readonly };
+annotate MaterialRequests with { externalRequestId @readonly };
+annotate MaterialRequests with { createdMaterial @readonly };
+annotate MaterialRequests with { s4ErrorCode @readonly };
+annotate MaterialRequests with { s4ErrorText @readonly };
+annotate MaterialRequests with { attempts @readonly };
+annotate MaterialRequests with { lastAttemptAt @readonly };
+
+// Org views and results always belong to a parent
+annotate MaterialPlantData with { request @mandatory };
+annotate MaterialStorageData with { request @mandatory };
+annotate MaterialSalesData with { request @mandatory };
+annotate MaterialValuationData with { request @mandatory };
+annotate MaterialPurchasingData with { request @mandatory };
+annotate ValidationMessages with { request @mandatory };
+annotate ValidationMessages with { severity @mandatory; viewType @mandatory; ruleCode @mandatory; messageText @mandatory };
+annotate MaterialRequests with { isOrphan @readonly };
