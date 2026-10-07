@@ -1,0 +1,5 @@
+ID,description
+Administrator,User administration (AuthAdminService)
+MaterialRequester,"Upload, edit, validate, submit, cancel, retry and download own jobs"
+MaterialApprover,Read submitted jobs and approve or reject jobs of others
+MaterialAdmin,Full access to all jobs and to MaterialAdminService

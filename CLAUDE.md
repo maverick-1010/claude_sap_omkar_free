@@ -10,8 +10,8 @@ SAP CAP (Node.js, `@sap/cds` 10, SQLite locally / HANA on BTP) project "Mass Mat
 
 ## Commands
 
-- `npm start` (`cds-serve`) / `npm run watch` (`cds watch`) – OData V4 at `/odata/v4/mass-material` and `/odata/v4/material-admin`. Local mocked users (package.json, `[development]`): `requester1`, `requester2`, `approver1`, `admin1` (any/empty password). Locally the S/4 adapter is the in-memory mock.
-- `npm test` (jest, ~20 s, 9 files) – single file: `npx jest test/posting.test.js`. Tests define their own mocked users via `process.env.CDS_CONFIG`.
+- `npm start` (`cds-serve`) / `npm run watch` (`cds watch`) – OData V4 at `/odata/v4/mass-material` and `/odata/v4/material-admin`. Authentication is the custom token framework (`docs/auth.md`, no XSUAA): `npm run setup` deploys `db.sqlite` and creates the first administrator (`ADMIN_PASSWORD` or prompt); then `POST /auth/login` and send `Authorization: Bearer <token>`; create more users with `/admin/createUser`. Locally the S/4 adapter is the in-memory mock.
+- `npm test` (jest, ~20 s, 9 files) – single file: `npx jest test/posting.test.js`. The business suites define their own mocked users via `process.env.CDS_CONFIG` (`auth.kind: 'mocked'`); `test/auth*.test.js` and `test/unit/` cover the custom auth. The `[test]` profile keeps the DB in memory.
 - `npx cds lint` – must report 0 errors. `npx cds build --production` – builds `gen/` (git-ignored). `mbt build` was not run (not installed here).
 - `npm run gen:uploads` – regenerates `test/uploads/*` (xlsx/csv), `expected-results.json` and `test-cases.md`. Deterministic (seeded); aborts if its reference validator disagrees with the declared expectations. Add cases to `CASES` / `STRUCTURAL` / `FAULTS` in `scripts/generate-test-uploads.js` rather than editing generated files. `expected-results.json` is the oracle for the validation engine.
 - `test/requests.http` – REST Client requests for the §9 `$expand` examples and the main flow.
@@ -25,7 +25,8 @@ SAP CAP (Node.js, `@sap/cds` 10, SQLite locally / HANA on BTP) project "Mass Mat
 - Posting: `submit`/`approve`/`retryFailed` move the job to PROCESSING and send a `postChunk` message through the persistent outbox in the same transaction; each message posts one chunk (50 rows, 3 in parallel, 3 retries with backoff for transient errors) and queues the next, so a restart resumes. Only VALID/WARNING/QUEUED rows are picked; SUCCESS rows never. Config under `cds.mmc` in package.json.
 - Seed data: `db/data/` (config + rules, loaded by cds), `test/data/` (caches, test only; also the default data of the mock S/4 adapter). Validation behaviour changes by editing rule data, not code.
 - i18n: `db/i18n/` with `en` (default), `es`, `hi`. Keep all languages in sync; use the `/cap-add-language` and `/cap-lang-check` project commands.
-- Platform: `xs-security.json` (roles MaterialRequester/Approver/Admin), `mta.yaml` (XSUAA, HANA, destination, audit log), `@cap-js/audit-logging` (approve/reject and all admin writes). `docs/` – spec and generated database design diagram (`/cap-export-design`).
+- Auth: `db/auth-schema.cds` (namespace `auth`), `srv/lib/auth/` (config, keys, tokens, password, user-store, custom-auth, routes, permissions, rate-limit, audit), `server.js` (headers + `/auth` router), `srv/admin-service.*` + `handlers/auth-admin.handler.js` (`AuthAdminService` at `/admin`, needs `User.Admin`), `scripts/create-admin.js`. Selected by `cds.requires.auth.kind = mmc-auth`; `cds.User.id` = username and `roles` = role IDs + permission IDs, so `srv/authorization.cds` is unchanged. Progress and decisions: `PROGRESS.md`.
+- Platform: `mta.yaml` (user-provided service `mmc-auth-keys` for the signing key, HANA, destination, audit log), `@cap-js/audit-logging` (approve/reject and all admin writes). `docs/` – spec and generated database design diagram (`/cap-export-design`).
 
 ## Behaviour to know about
 
@@ -45,6 +46,8 @@ SAP CAP (Node.js, `@sap/cds` 10, SQLite locally / HANA on BTP) project "Mass Mat
 - `POSTING` row status is never set (a chunk is one transaction). `retryFailed` sets FAILED rows back to `QUEUED`.
 - `product-srv.adapter.js` (real S/4) is **unverified**: field names and the value-help source mapping (`cds.mmc.s4.valueHelps`) must be checked against the target system.
 - `description` is `String(40)` but test case E07 has 41 characters: SQLite accepts it, HANA would reject the insert before validation can report `LENGTH_DESCRIPTION`.
+
+- Auth deviations from its spec: `@sap/cds` 10 and express 5 (not 9 / 4); no sample `DocumentService`; the admin service is `AuthAdminService` at `/admin`; the `Administrator` role cannot lose `User.Admin`; deleting an assigned role or `Administrator` is 409. `@sap/xssec` and `xs-security.json` were removed; the XSUAA mentions in `docs/spec.md` §4.7/§5 are superseded by `docs/auth.md`.
 
 ## Conventions
 

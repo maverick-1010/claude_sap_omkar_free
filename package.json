@@ -10,6 +10,8 @@
     "start": "cds-serve",
     "watch": "cds watch",
     "test": "jest",
+    "setup": "cds deploy --to sqlite:db.sqlite && node scripts/create-admin.js",
+    "create-admin": "node scripts/create-admin.js",
     "gen:uploads": "node scripts/generate-test-uploads.js"
   },
   "dependencies": {
@@ -20,8 +22,8 @@
     "@sap-cloud-sdk/connectivity": "^4",
     "@sap-cloud-sdk/http-client": "^4",
     "@sap/cds": "^10.1.1",
-    "@sap/xssec": "^4",
-    "exceljs": "^4.4.0"
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1"
   },
   "devDependencies": {
     "@cap-js/cds-test": "^1.0.2",
@@ -41,35 +43,34 @@
   },
   "cds": {
     "requires": {
+      "kinds": {
+        "mmc-auth": {
+          "impl": "srv/lib/auth/custom-auth.js"
+        }
+      },
       "[development]": {
         "auth": {
-          "kind": "mocked",
-          "users": {
-            "requester1": {
-              "roles": [
-                "MaterialRequester"
-              ]
-            },
-            "requester2": {
-              "roles": [
-                "MaterialRequester"
-              ]
-            },
-            "approver1": {
-              "roles": [
-                "MaterialApprover"
-              ]
-            },
-            "admin1": {
-              "roles": [
-                "MaterialAdmin"
-              ]
-            }
+          "kind": "mmc-auth"
+        },
+        "db": {
+          "kind": "sqlite",
+          "credentials": {
+            "url": "db.sqlite"
+          }
+        }
+      },
+      "[test]": {
+        "db": {
+          "kind": "sqlite",
+          "credentials": {
+            "url": ":memory:"
           }
         }
       },
       "[production]": {
-        "auth": "xsuaa"
+        "auth": {
+          "kind": "mmc-auth"
+        }
       },
       "destinations": true
     },

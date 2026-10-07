@@ -24,7 +24,7 @@ modules:
         properties:
           srv-url: ${default-url}
     requires:
-      - name: mmc-auth
+      - name: mmc-auth-keys
       - name: mmc-db
       - name: mmc-destination
       - name: mmc-auditlog
@@ -38,32 +38,12 @@ modules:
       - name: mmc-db
 
 resources:
-  - name: mmc-auth
-    type: org.cloudfoundry.managed-service
+  # Signing key of the custom auth framework (AUTH_SIGNING_KEY, AUTH_SIGNING_KID, AUTH_VERIFY_KEYS). Create it once, outside git:
+  #   cf cups mmc-auth-keys -p '{"AUTH_SIGNING_KEY": "<Ed25519 PKCS#8 PEM>"}'
+  - name: mmc-auth-keys
+    type: org.cloudfoundry.existing-service
     parameters:
-      service: xsuaa
-      service-plan: application
-      path: ./xs-security.json
-      config:
-        xsappname: mmc-${org}-${space}
-        tenant-mode: dedicated
-        oauth2-configuration:
-          credential-types:
-            - "binding-secret"
-            - "x509"
-        role-collections:
-          - name: 'MaterialRequester (mmc ${org}-${space})'
-            description: 'generated'
-            role-template-references:
-              - '$XSAPPNAME.MaterialRequester'
-          - name: 'MaterialApprover (mmc ${org}-${space})'
-            description: 'generated'
-            role-template-references:
-              - '$XSAPPNAME.MaterialApprover'
-          - name: 'MaterialAdmin (mmc ${org}-${space})'
-            description: 'generated'
-            role-template-references:
-              - '$XSAPPNAME.MaterialAdmin'
+      service-name: mmc-auth-keys
   - name: mmc-db
     type: com.sap.xs.hdi-container
     parameters:

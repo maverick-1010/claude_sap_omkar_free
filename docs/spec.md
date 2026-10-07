@@ -8,7 +8,7 @@ Version 1.0 | October 2026
 | Services | MassMaterialService \| MaterialAdminService |
 | Stack | SAP BTP \| CAP (Node.js) \| SAP HANA Cloud \| OData V4 |
 | Integration | S/4HANA via SAP Cloud SDK — API_PRODUCT_SRV |
-| Auth | XSUAA \| JWT \| Row-level security |
+| Auth | Custom JWT framework (docs/auth.md) \| Row-level security |
 
 ---
 
@@ -223,7 +223,7 @@ Suggested layout: `srv/handlers/` (one file per area: jobs, requests, upload, po
 - Node.js: 20.x LTS or later.
 - @sap/cds: pin the current major version at project start; do not mix majors.
 - S/4 connectivity: BTP Destination service (+ Connectivity service / Cloud Connector for on-premise).
-- Auth: XSUAA; mocked users only in local development.
+- Auth: custom token framework instead of XSUAA (see `docs/auth.md`); mocked users only in tests.
 - Audit logging: @cap-js/audit-logging on approve, reject, and all MaterialAdminService writes.
 - Excel handling: streaming reader/writer (e.g. exceljs) so large files do not exhaust memory.
 

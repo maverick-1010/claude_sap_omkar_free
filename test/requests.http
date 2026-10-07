@@ -1,13 +1,43 @@
 ### Requests for local development (REST Client / IntelliJ HTTP client). Start with: npm run watch
-### Mocked users (package.json [development]): requester1, requester2, approver1, admin1 (empty password). Spec §9 for the $expand examples.
-### The Authorization variables below select the user, so role checks, row filtering and the four-eyes 403 can be tried locally.
+### Custom auth (docs/auth.md): npm run setup creates the administrator; create other users with createUser (below).
+### Run the login requests first; the Authorization variables then hold the Bearer tokens. Spec §9 for the $expand examples.
 
 @host = http://localhost:4004
 @mm = {{host}}/odata/v4/mass-material
 @admin = {{host}}/odata/v4/material-admin
-@requester = Basic cmVxdWVzdGVyMTo=
-@approver = Basic YXBwcm92ZXIxOg==
-@administrator = Basic YWRtaW4xOg==
+@auth = {{host}}/auth
+
+# @name loginAdmin
+POST {{auth}}/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "<admin password>" }
+
+###
+# @name loginRequester
+POST {{auth}}/login
+Content-Type: application/json
+
+{ "username": "requester1", "password": "<password>" }
+
+###
+# @name loginApprover
+POST {{auth}}/login
+Content-Type: application/json
+
+{ "username": "approver1", "password": "<password>" }
+
+###
+### Creates a user (first login forces POST {{auth}}/change-password). Roles: MaterialRequester, MaterialApprover, MaterialAdmin, Administrator
+POST {{host}}/admin/createUser
+Authorization: {{administrator}}
+Content-Type: application/json
+
+{ "username": "requester1", "email": "r1@example.com", "password": "<initial password>", "roles": ["MaterialRequester"] }
+
+@requester = Bearer {{loginRequester.response.body.access_token}}
+@approver = Bearer {{loginApprover.response.body.access_token}}
+@administrator = Bearer {{loginAdmin.response.body.access_token}}
 
 ### ---- Service metadata
 GET {{mm}}/$metadata
