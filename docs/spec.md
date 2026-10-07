@@ -199,7 +199,8 @@ Suggested layout: `srv/handlers/` (one file per area: jobs, requests, upload, po
 
 ### 4.4 OData Protocol
 
-- OData V4 only. OData V2 is out of scope.
+- OData V4 is the native protocol of both services.
+- OData V2 is additionally exposed through the `@cap-js-community/odata-v2-adapter` plugin (proxy under `/odata/v2/...`, e.g. `/odata/v2/mass-material`) for V2 clients. No service code depends on it; V4 remains the reference contract for §7 and §8.
 - No Fiori draft (`@odata.draft.enabled` is not used). Rationale: the job status already provides the edit lifecycle, and drafts would duplicate up to 5,000 rows per job.
 
 ### 4.5 ETag / Concurrency

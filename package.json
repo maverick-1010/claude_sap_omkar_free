@@ -13,6 +13,7 @@
     "gen:uploads": "node scripts/generate-test-uploads.js"
   },
   "dependencies": {
+    "@cap-js-community/odata-v2-adapter": "^1.16.1",
     "@cap-js/audit-logging": "^1",
     "@cap-js/hana": "^3",
     "@cap-js/sqlite": "^3.1.1",

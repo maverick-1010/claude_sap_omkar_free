@@ -40,6 +40,7 @@ SAP CAP (Node.js, `@sap/cds` 10, SQLite locally / HANA on BTP) project "Mass Mat
 - Orphan org rows (no Basic row) become a `MaterialRequests` row with `isOrphan = true` (extra field) and get only `ORPHAN_ROW`.
 - Extra checks beyond the seed rules: `DUPLICATE_MATERIAL`, `DUPLICATE_ORG_ROW`, `WEIGHT_NOT_POSITIVE`, `WEIGHTUNIT_REQUIRED` (spec §3.4 / §6.3 wording; no fixture covers them).
 - `UploadJobs.failureReason` (extra field) holds the message of a job-level posting failure (§7.4).
+- OData V2 is exposed via the `@cap-js-community/odata-v2-adapter` cds-plugin (`/odata/v2/mass-material`, `/odata/v2/material-admin`), changing spec §4.4 ("V4 only"). Not covered by tests.
 - `.xlsx` is read and written in memory (exceljs streaming reader crashed on small files); bounded by the 10 MB limit.
 - `POSTING` row status is never set (a chunk is one transaction). `retryFailed` sets FAILED rows back to `QUEUED`.
 - `product-srv.adapter.js` (real S/4) is **unverified**: field names and the value-help source mapping (`cds.mmc.s4.valueHelps`) must be checked against the target system.
