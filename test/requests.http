@@ -1,0 +1,206 @@
+### Requests for local development (REST Client / IntelliJ HTTP client). Start with: npm run watch
+### Custom auth (docs/auth.md): npm run setup creates the administrator; create other users with createUser (below).
+### Run the login requests first; the Authorization variables then hold the Bearer tokens. Spec §9 for the $expand examples.
+
+@host = http://localhost:4004
+@mm = {{host}}/odata/v4/mass-material
+@admin = {{host}}/odata/v4/material-admin
+@auth = {{host}}/auth
+
+# @name loginAdmin
+POST {{auth}}/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "<admin password>" }
+
+###
+# @name loginRequester
+POST {{auth}}/login
+Content-Type: application/json
+
+{ "username": "requester1", "password": "<password>" }
+
+###
+# @name loginApprover
+POST {{auth}}/login
+Content-Type: application/json
+
+{ "username": "approver1", "password": "<password>" }
+
+###
+### Creates a user (first login forces POST {{auth}}/change-password). Roles: MaterialRequester, MaterialApprover, MaterialAdmin, Administrator
+POST {{host}}/admin/createUser
+Authorization: {{administrator}}
+Content-Type: application/json
+
+{ "username": "requester1", "email": "r1@example.com", "password": "<initial password>", "roles": ["MaterialRequester"] }
+
+@requester = Bearer {{loginRequester.response.body.access_token}}
+@approver = Bearer {{loginApprover.response.body.access_token}}
+@administrator = Bearer {{loginAdmin.response.body.access_token}}
+
+### ---- Service metadata
+GET {{mm}}/$metadata
+Authorization: {{requester}}
+
+###
+GET {{admin}}/$metadata
+Authorization: {{administrator}}
+
+### ---- Upload template (any authenticated user)
+GET {{mm}}/getTemplate()
+Authorization: {{requester}}
+
+### ---- 1. Create a job
+# @name createJob
+POST {{mm}}/UploadJobs
+Authorization: {{requester}}
+Content-Type: application/json
+
+{ "description": "October materials" }
+
+###
+@jobId = {{createJob.response.body.ID}}
+
+### ---- 2. Register the file, then stream the content (see test/uploads for sample files)
+# @name createFile
+POST {{mm}}/JobFiles
+Authorization: {{requester}}
+Content-Type: application/json
+
+{
+  "job_ID": "{{jobId}}",
+  "fileName": "happy-path.xlsx",
+  "mediaType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+}
+
+###
+@fileId = {{createFile.response.body.ID}}
+
+PUT {{mm}}/JobFiles({{fileId}})/content
+Authorization: {{requester}}
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+< ./uploads/happy-path.xlsx
+
+### ---- 3. Parse and validate (bound actions need If-Match; * = any version)
+POST {{mm}}/UploadJobs({{jobId}})/MassMaterialService.parse
+Authorization: {{requester}}
+If-Match: *
+Content-Type: application/json
+
+{}
+
+###
+POST {{mm}}/UploadJobs({{jobId}})/MassMaterialService.validate
+Authorization: {{requester}}
+If-Match: *
+Content-Type: application/json
+
+{}
+
+### ---- 4. Submit; with requiresApproval a second user approves (cds.mmc.requiresApproval in package.json)
+POST {{mm}}/UploadJobs({{jobId}})/MassMaterialService.submit
+Authorization: {{requester}}
+If-Match: *
+Content-Type: application/json
+
+{}
+
+###
+POST {{mm}}/UploadJobs({{jobId}})/MassMaterialService.approve
+Authorization: {{approver}}
+If-Match: *
+Content-Type: application/json
+
+{}
+
+###
+POST {{mm}}/UploadJobs({{jobId}})/MassMaterialService.reject
+Authorization: {{approver}}
+If-Match: *
+Content-Type: application/json
+
+{ "reason": "Please check the plants" }
+
+###
+POST {{mm}}/UploadJobs({{jobId}})/MassMaterialService.cancel
+Authorization: {{requester}}
+If-Match: *
+Content-Type: application/json
+
+{}
+
+###
+POST {{mm}}/UploadJobs({{jobId}})/MassMaterialService.retryFailed
+Authorization: {{requester}}
+If-Match: *
+Content-Type: application/json
+
+{}
+
+###
+GET {{mm}}/UploadJobs({{jobId}})/MassMaterialService.downloadResult()
+Authorization: {{requester}}
+
+### ---- §9.1 Job with rows and messages
+GET {{mm}}/UploadJobs({{jobId}})?$expand=requests($expand=messages)
+Authorization: {{requester}}
+
+###
+GET {{mm}}/UploadJobs({{jobId}})?$select=jobNo,status,totalRows,errorRows,progressPct&$expand=requests($filter=status eq 'ERROR';$select=rowNo,materialType,description,status;$expand=messages($select=severity,fieldName,messageText))
+Authorization: {{requester}}
+
+### ---- §9.2 Material request with all views
+GET {{mm}}/MaterialRequests?$top=1&$expand=plantData,storageData,salesData,valuationData,purchasingData,messages
+Authorization: {{requester}}
+
+### ---- §9.3 Job monitoring
+GET {{mm}}/UploadJobs?$filter=status eq 'PROCESSING'&$select=jobNo,description,progressPct,successRows,failedRows&$orderby=createdAt desc
+Authorization: {{requester}}
+
+###
+GET {{mm}}/MaterialRequests?$filter=job_ID eq {{jobId}} and status eq 'FAILED'&$select=rowNo,description,s4ErrorCode,s4ErrorText,attempts
+Authorization: {{requester}}
+
+### ---- §9.4 Value helps and required views
+GET {{mm}}/ValueHelps?$filter=category eq 'PLANT'
+Authorization: {{requester}}
+
+###
+GET {{mm}}/MaterialTypeViews?$filter=materialType eq 'FERT'
+Authorization: {{requester}}
+
+### ---- Concurrency: PATCH needs If-Match with the ETag of the job (428 without, 412 when stale)
+GET {{mm}}/UploadJobs({{jobId}})
+Authorization: {{requester}}
+
+###
+PATCH {{mm}}/UploadJobs({{jobId}})
+Authorization: {{requester}}
+If-Match: *
+Content-Type: application/json
+
+{ "description": "renamed" }
+
+### ---- Administration (MaterialAdmin only)
+GET {{admin}}/ValidationRules?$filter=active eq true&$top=5
+Authorization: {{administrator}}
+
+###
+POST {{admin}}/refreshValueHelps
+Authorization: {{administrator}}
+Content-Type: application/json
+
+{ "category": "" }
+
+###
+POST {{admin}}/refreshExistingMaterials
+Authorization: {{administrator}}
+Content-Type: application/json
+
+{}
+
+###
+GET {{admin}}/testS4Connection()
+Authorization: {{administrator}}

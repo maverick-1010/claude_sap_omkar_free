@@ -3,20 +3,92 @@
   "version": "1.0.0",
   "description": "Material master mass maintenance",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "cds-serve",
     "watch": "cds watch",
     "test": "jest",
+    "setup": "cds deploy --to sqlite:db.sqlite && node scripts/create-admin.js",
+    "create-admin": "node scripts/create-admin.js",
     "gen:uploads": "node scripts/generate-test-uploads.js"
   },
   "dependencies": {
+    "@cap-js-community/odata-v2-adapter": "^1.16.1",
+    "@cap-js/audit-logging": "^1",
+    "@cap-js/hana": "^3",
     "@cap-js/sqlite": "^3.1.1",
+    "@sap-cloud-sdk/connectivity": "^4",
+    "@sap-cloud-sdk/http-client": "^4",
     "@sap/cds": "^10.1.1",
-    "exceljs": "^4.4.0"
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1"
   },
   "devDependencies": {
     "@cap-js/cds-test": "^1.0.2",
     "@sap/cds-dk": "^10.1.0",
+    "@sap/eslint-plugin-cds": "^4.2.5",
+    "eslint": "^10.12.0",
     "jest": "^30.5.2"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/gen/"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/gen/"
+    ]
+  },
+  "cds": {
+    "requires": {
+      "kinds": {
+        "mmc-auth": {
+          "impl": "srv/lib/auth/custom-auth.js"
+        }
+      },
+      "[development]": {
+        "auth": {
+          "kind": "mmc-auth"
+        },
+        "db": {
+          "kind": "sqlite",
+          "credentials": {
+            "url": "db.sqlite"
+          }
+        }
+      },
+      "[test]": {
+        "db": {
+          "kind": "sqlite",
+          "credentials": {
+            "url": ":memory:"
+          }
+        }
+      },
+      "[production]": {
+        "auth": {
+          "kind": "mmc-auth"
+        }
+      },
+      "destinations": true
+    },
+    "mmc": {
+      "requiresApproval": false,
+      "posting": {
+        "chunkSize": 50,
+        "concurrency": 3,
+        "maxRetries": 3,
+        "backoffMs": 500
+      },
+      "s4": {
+        "destination": "S4_MATERIAL"
+      },
+      "nightlyRefresh": {
+        "enabled": true,
+        "hour": 2
+      }
+    }
   }
 }

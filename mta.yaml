@@ -1,0 +1,61 @@
+_schema-version: 3.3.0
+ID: mmc
+version: 1.0.0
+description: "Material master mass maintenance"
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+modules:
+  - name: mmc-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      instances: 1
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm-ci
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: mmc-auth-keys
+      - name: mmc-db
+      - name: mmc-destination
+      - name: mmc-auditlog
+
+  - name: mmc-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: mmc-db
+
+resources:
+  # Signing key of the custom auth framework (AUTH_SIGNING_KEY, AUTH_SIGNING_KID, AUTH_VERIFY_KEYS). Create it once, outside git:
+  #   cf cups mmc-auth-keys -p '{"AUTH_SIGNING_KEY": "<Ed25519 PKCS#8 PEM>"}'
+  - name: mmc-auth-keys
+    type: org.cloudfoundry.existing-service
+    parameters:
+      service-name: mmc-auth-keys
+  - name: mmc-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+  - name: mmc-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+  - name: mmc-auditlog
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: auditlog
+      service-plan: premium
