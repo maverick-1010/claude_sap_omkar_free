@@ -1,5 +1,6 @@
 ### Requests for local development (REST Client / IntelliJ HTTP client). Start with: npm run watch
-### Mocked users: requester1, requester2, approver1, admin1 (empty password). Spec §9 for the $expand examples.
+### Mocked users (package.json [development]): requester1, requester2, approver1, admin1 (empty password). Spec §9 for the $expand examples.
+### The Authorization variables below select the user, so role checks, row filtering and the four-eyes 403 can be tried locally.
 
 @host = http://localhost:4004
 @mm = {{host}}/odata/v4/mass-material
@@ -7,6 +8,14 @@
 @requester = Basic cmVxdWVzdGVyMTo=
 @approver = Basic YXBwcm92ZXIxOg==
 @administrator = Basic YWRtaW4xOg==
+
+### ---- Service metadata
+GET {{mm}}/$metadata
+Authorization: {{requester}}
+
+###
+GET {{admin}}/$metadata
+Authorization: {{administrator}}
 
 ### ---- Upload template (any authenticated user)
 GET {{mm}}/getTemplate()
@@ -29,14 +38,18 @@ POST {{mm}}/JobFiles
 Authorization: {{requester}}
 Content-Type: application/json
 
-{ "job_ID": "{{jobId}}", "fileName": "happy-path.xlsx" }
+{
+  "job_ID": "{{jobId}}",
+  "fileName": "happy-path.xlsx",
+  "mediaType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+}
 
 ###
 @fileId = {{createFile.response.body.ID}}
 
 PUT {{mm}}/JobFiles({{fileId}})/content
 Authorization: {{requester}}
-Content-Type: application/octet-stream
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 
 < ./uploads/happy-path.xlsx
 
@@ -79,6 +92,14 @@ If-Match: *
 Content-Type: application/json
 
 { "reason": "Please check the plants" }
+
+###
+POST {{mm}}/UploadJobs({{jobId}})/MassMaterialService.cancel
+Authorization: {{requester}}
+If-Match: *
+Content-Type: application/json
+
+{}
 
 ###
 POST {{mm}}/UploadJobs({{jobId}})/MassMaterialService.retryFailed
